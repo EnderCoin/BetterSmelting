@@ -1,10 +1,15 @@
 package com.github.soniex2.bettersmelting.tileentity;
 
+import com.github.soniex2.bettersmelting.api.IBetterSmeltingRecipe;
 import com.github.soniex2.bettersmelting.api.utility.FuelHandlerUtility;
+import com.github.soniex2.bettersmelting.api.SmeltingRegistry;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.ForgeDirection;
 
 public class TileEntityBetterFurnace extends TileEntityBS implements ISidedInventory {
@@ -17,6 +22,13 @@ public class TileEntityBetterFurnace extends TileEntityBS implements ISidedInven
      */
     // 0 = input, 1 = fuel, 2 = output
     private ItemStack[] furnaceItemStacks = new ItemStack[3];
+
+    private int burnTime;
+    private int burnHeat;
+    private int currentItemBurnTime;
+
+    private int smeltTime;
+    private int currentItemSmeltTime;
 
     private String customName;
 
@@ -124,8 +136,62 @@ public class TileEntityBetterFurnace extends TileEntityBS implements ISidedInven
 
     @Override
     public boolean isItemValidForSlot(int p_94041_1_, ItemStack p_94041_2_) {
-        return !(p_94041_1_ == 1 && FuelHandlerUtility.getFuelStats(p_94041_2_).burnTime <= 0);
+        return !(p_94041_1_ == 1 && FuelHandlerUtility.isItemFuel(p_94041_2_));
     }
 
+    @Override
+    public void writeToNBT(NBTTagCompound compound) {
+        super.writeToNBT(compound);
+
+        compound.setInteger("BurnTime", this.burnTime);
+        compound.setInteger("CookTime", this.smeltTime);
+
+        NBTTagList inventory = new NBTTagList();
+
+        for (int i = 0; i < this.furnaceItemStacks.length; ++i) {
+            if (this.furnaceItemStacks[i] != null) {
+                NBTTagCompound slot = new NBTTagCompound();
+                slot.setByte("Slot", (byte) i);
+                this.furnaceItemStacks[i].writeToNBT(slot);
+                inventory.appendTag(slot);
+            }
+        }
+
+        compound.setTag("Items", inventory);
+
+        if (this.hasCustomInventoryName()) {
+            compound.setString("CustomName", this.customName);
+        }
+    }
+
+    @Override
+    public void readFromNBT(NBTTagCompound compound) {
+        super.readFromNBT(compound);
+
+        NBTTagList inventory = compound.getTagList("Items", 10);
+        this.furnaceItemStacks = new ItemStack[this.getSizeInventory()];
+
+        for (int i = 0; i < inventory.tagCount(); ++i) {
+            NBTTagCompound slot = inventory.getCompoundTagAt(i);
+            byte b0 = slot.getByte("Slot");
+
+            if (b0 >= 0 && b0 < this.furnaceItemStacks.length) {
+                this.furnaceItemStacks[b0] = ItemStack.loadItemStackFromNBT(slot);
+            }
+        }
+
+        this.burnTime = compound.getShort("BurnTime");
+        this.smeltTime = compound.getShort("CookTime");
+        this.currentItemBurnTime = FuelHandlerUtility.getFuelStats(this.furnaceItemStacks[1]).burnTime;
+        this.burnHeat = FuelHandlerUtility.getFuelStats(this.furnaceItemStacks[1]).burnHeat;
+        IBetterSmeltingRecipe recipe = SmeltingRegistry.getRecipe(furnaceItemStacks[0], burnHeat);
+        if (recipe != null) {
+            this.currentItemSmeltTime = recipe.getSmeltingTime();
+        }
+
+        if (compound.hasKey("CustomName", Constants.NBT.TAG_STRING)) {
+            this.customName = compound.getString("CustomName");
+        }
+    }
 
 }

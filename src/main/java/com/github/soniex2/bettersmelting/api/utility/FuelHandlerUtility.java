@@ -67,4 +67,8 @@ public class FuelHandlerUtility {
         }
         return new BetterFuel(burnTime, burnHeat);
     }
+
+    public static boolean isItemFuel(ItemStack item) {
+        return getFuelStats(item).burnTime > 0;
+    }
 }
