@@ -22,7 +22,7 @@ public class SmeltingRegistry {
         for (IBetterSmeltingRecipe recipe1 : recipes) {
             ItemStack recipeInput = recipe1.getRecipeInput();
             // compare items
-            if (recipeInput.getItem() == input.getItem() && recipe1.damageMatches(input)) {
+            if (recipeInput.getItem() == input.getItem() && recipe1.damageMatches(input.getItemDamage())) {
                 // compare temperature
                 if (recipe1.getMaximumHeat() > heat
                         && recipe1.getMinimumHeat() < heat) {

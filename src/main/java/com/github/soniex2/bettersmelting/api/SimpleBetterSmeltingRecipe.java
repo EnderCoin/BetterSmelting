@@ -56,12 +56,12 @@ public class SimpleBetterSmeltingRecipe implements IBetterSmeltingRecipe {
     }
 
     @Override
-    public boolean damageMatches(ItemStack is) {
+    public boolean damageMatches(int damage) {
         if (isBlockRecipe) {
             if (input.getItemDamage() == OreDictionary.WILDCARD_VALUE) {
                 return true; // we don't care about input's damage
             }
         }
-        return input.getItemDamage() == input.getItemDamage();
+        return input.getItemDamage() == damage;
     }
 }

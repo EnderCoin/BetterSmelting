@@ -36,12 +36,12 @@ public interface IBetterSmeltingRecipe {
     boolean nbtMatches(ItemStack is);
 
     /**
-     * Checks to see if the passed {@link net.minecraft.item.ItemStack} can be used on this recipe, based on its damage.
+     * Checks to see if the passed item damage can be used on this recipe.
      *
-     * @param is The ItemStack
-     * @return {@literal true} if the passed {@code ItemStack} can be used on this recipe.
+     * @param damage The damage
+     * @return {@literal true} if the passed item damage can be used on this recipe.
      */
     // We have this because I don't like Minecraft's "wildcard damage" system.
-    boolean damageMatches(ItemStack is);
+    boolean damageMatches(int damage);
 
 }
